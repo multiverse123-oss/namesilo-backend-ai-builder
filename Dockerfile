@@ -1,1 +1,1 @@
-FROM pocketbase/pocketbase:latest
+FROM nxtgencat/pocketbase:latest
