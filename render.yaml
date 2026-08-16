@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: namesilo-backend
+    runtime: image
+    repo: https://github.com/multiverse123-oss/namesilo-backend-ai-builder
+    plan: free
+    region: oregon
+    image:
+      url: pocketbase/pocketbase:latest
+    startCommand: serve --http=0.0.0.0:8080
+    envVars:
+      - key: PB_ADMIN_EMAIL
+        value: admin@namesilo.com
+      - key: PB_ADMIN_PASSWORD
+        value: Admin123456
+    disk:
+      name: pb_data
+      mountPath: /pb/pb_data
+      sizeGB: 1
