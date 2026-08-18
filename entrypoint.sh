@@ -5,6 +5,9 @@ PB_DATA_DIR="/app/pb_data"
 DB_PATH="$PB_DATA_DIR/data.db"
 LITESTREAM_CONFIG="/app/litestream.yml"
 
+# Use PORT from environment, default to 8080 if not set
+PORT=${PORT:-8080}
+
 # Set defaults for IDrive variables if not provided
 IDRIVE_REGION=${IDRIVE_REGION:-us-midwest-1}
 IDRIVE_ENDPOINT=${IDRIVE_ENDPOINT:-s3.us-midwest-1.idrivee2.com}
@@ -38,4 +41,4 @@ EOC
 
 /app/litestream replicate -config "$LITESTREAM_CONFIG" &
 
-/app/pocketbase serve --http=0.0.0.0:8080
+/app/pocketbase serve --http=0.0.0.0:$PORT
