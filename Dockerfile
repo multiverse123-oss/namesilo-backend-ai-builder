@@ -10,11 +10,10 @@ RUN wget https://github.com/pocketbase/pocketbase/releases/download/v0.39.10/poc
     rm pocketbase_0.39.10_linux_amd64.zip && \
     chmod +x pocketbase
 
-# Litestream v0.5.14 (confirmed to exist)
-RUN wget https://github.com/benbjohnson/litestream/releases/download/v0.5.14/litestream-linux-amd64.tar.gz && \
-    tar -xzf litestream-linux-amd64.tar.gz && \
-    rm litestream-linux-amd64.tar.gz && \
-    chmod +x litestream
+# Litestream – download the raw binary directly (no .tar.gz)
+RUN wget https://github.com/benbjohnson/litestream/releases/download/v0.5.16/litestream-linux-amd64 && \
+    chmod +x litestream-linux-amd64 && \
+    mv litestream-linux-amd64 litestream
 
 COPY entrypoint.sh /app/entrypoint.sh
 RUN chmod +x /app/entrypoint.sh
