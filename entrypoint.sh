@@ -5,13 +5,18 @@ PB_DATA_DIR="/app/pb_data"
 DB_PATH="$PB_DATA_DIR/data.db"
 LITESTREAM_CONFIG="/app/litestream.yml"
 
-# Check required environment variables
-for VAR in IDRIVE_ACCESS_KEY IDRIVE_SECRET_KEY IDRIVE_BUCKET IDRIVE_ENDPOINT IDRIVE_REGION; do
-    if [ -z "$(eval echo \$$VAR)" ]; then
-        echo "ERROR: $VAR is not set. Exiting."
-        exit 1
-    fi
-done
+# Set defaults for IDrive variables if not provided
+IDRIVE_REGION=${IDRIVE_REGION:-us-midwest-1}
+IDRIVE_ENDPOINT=${IDRIVE_ENDPOINT:-s3.us-midwest-1.idrivee2.com}
+IDRIVE_BUCKET=${IDRIVE_BUCKET:-namesilo-backend}
+IDRIVE_ACCESS_KEY=${IDRIVE_ACCESS_KEY:-}
+IDRIVE_SECRET_KEY=${IDRIVE_SECRET_KEY:-}
+
+# Required vars (must be set)
+if [ -z "$IDRIVE_ACCESS_KEY" ] || [ -z "$IDRIVE_SECRET_KEY" ]; then
+    echo "ERROR: IDRIVE_ACCESS_KEY and IDRIVE_SECRET_KEY must be set."
+    exit 1
+fi
 
 mkdir -p "$PB_DATA_DIR"
 
