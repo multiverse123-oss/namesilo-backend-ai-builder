@@ -4,12 +4,14 @@ RUN apk add --no-cache wget unzip ca-certificates
 
 WORKDIR /app
 
+# PocketBase v0.39.10 (exists)
 RUN wget https://github.com/pocketbase/pocketbase/releases/download/v0.39.10/pocketbase_0.39.10_linux_amd64.zip && \
     unzip pocketbase_0.39.10_linux_amd64.zip && \
     rm pocketbase_0.39.10_linux_amd64.zip && \
     chmod +x pocketbase
 
-RUN wget https://github.com/benbjohnson/litestream/releases/latest/download/litestream-linux-amd64.tar.gz && \
+# Litestream v0.5.15 (exists)
+RUN wget https://github.com/benbjohnson/litestream/releases/download/v0.5.15/litestream-linux-amd64.tar.gz && \
     tar -xzf litestream-linux-amd64.tar.gz && \
     rm litestream-linux-amd64.tar.gz && \
     chmod +x litestream
