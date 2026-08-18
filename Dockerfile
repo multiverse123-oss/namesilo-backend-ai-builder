@@ -1,18 +1,21 @@
+# Stage 1: Get Litestream binary from official image
+FROM litestream/litestream:latest as litestream
+
+# Stage 2: Final image with PocketBase
 FROM alpine:latest
 
-RUN apk add --no-cache wget unzip ca-certificates curl bash
+RUN apk add --no-cache wget unzip ca-certificates
 
 WORKDIR /app
 
-# PocketBase v0.39.10 (fixed)
+# Copy Litestream binary from stage 1
+COPY --from=litestream /usr/local/bin/litestream /app/litestream
+
+# PocketBase v0.39.10
 RUN wget https://github.com/pocketbase/pocketbase/releases/download/v0.39.10/pocketbase_0.39.10_linux_amd64.zip && \
     unzip pocketbase_0.39.10_linux_amd64.zip && \
     rm pocketbase_0.39.10_linux_amd64.zip && \
     chmod +x pocketbase
-
-# Install Litestream using the official install script (always works)
-RUN curl -fsSL https://litestream.io/install.sh | bash && \
-    mv /usr/local/bin/litestream /app/litestream
 
 COPY entrypoint.sh /app/entrypoint.sh
 RUN chmod +x /app/entrypoint.sh
