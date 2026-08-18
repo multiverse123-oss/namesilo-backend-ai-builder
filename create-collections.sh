@@ -5,32 +5,39 @@ BASE_URL="https://namesilo-backend-ai-builder.onrender.com"
 ADMIN_EMAIL="admin@namesilo.com"
 ADMIN_PASSWORD="Admin123456"
 
+# Check if jq is installed
+if ! command -v jq &> /dev/null; then
+    echo "❌ jq is not installed. Install it with: sudo apt-get install -y jq"
+    exit 1
+fi
+
 # Get admin token
+echo "🔐 Getting admin token..."
 TOKEN=$(curl -s -X POST "$BASE_URL/api/collections/_superusers/auth-with-password" \
   -H "Content-Type: application/json" \
   -d "{\"identity\":\"$ADMIN_EMAIL\",\"password\":\"$ADMIN_PASSWORD\"}" \
   | jq -r '.token')
 
 if [ -z "$TOKEN" ] || [ "$TOKEN" = "null" ]; then
-  echo "❌ Failed to get admin token."
-  exit 1
+    echo "❌ Failed to get admin token."
+    exit 1
 fi
-
 echo "✅ Admin token obtained"
 
-# Delete existing projects collection if it exists (to start fresh)
-echo "🗑️ Checking for existing collections..."
+# Delete existing collections if they exist (to start fresh)
+echo "🗑️ Cleaning up existing collections..."
 COLLECTIONS=$(curl -s -X GET "$BASE_URL/api/collections" -H "Authorization: Bearer $TOKEN")
+
 EXISTING_PROJECTS=$(echo "$COLLECTIONS" | jq -r '.items[] | select(.name=="projects") | .id // empty')
 if [ -n "$EXISTING_PROJECTS" ]; then
-  echo "Deleting existing projects collection: $EXISTING_PROJECTS"
-  curl -s -X DELETE "$BASE_URL/api/collections/$EXISTING_PROJECTS" -H "Authorization: Bearer $TOKEN"
+    echo "Deleting projects collection: $EXISTING_PROJECTS"
+    curl -s -X DELETE "$BASE_URL/api/collections/$EXISTING_PROJECTS" -H "Authorization: Bearer $TOKEN"
 fi
 
 EXISTING_CHAT=$(echo "$COLLECTIONS" | jq -r '.items[] | select(.name=="chat_messages") | .id // empty')
 if [ -n "$EXISTING_CHAT" ]; then
-  echo "Deleting existing chat_messages collection: $EXISTING_CHAT"
-  curl -s -X DELETE "$BASE_URL/api/collections/$EXISTING_CHAT" -H "Authorization: Bearer $TOKEN"
+    echo "Deleting chat_messages collection: $EXISTING_CHAT"
+    curl -s -X DELETE "$BASE_URL/api/collections/$EXISTING_CHAT" -H "Authorization: Bearer $TOKEN"
 fi
 
 # Create projects collection
@@ -54,17 +61,18 @@ PROJECTS_RESPONSE=$(curl -s -X POST "$BASE_URL/api/collections" \
     "updateRule": "user = @request.auth.id",
     "deleteRule": "user = @request.auth.id"
   }')
-PROJECTS_ID=$(echo "$PROJECTS_RESPONSE" | jq -r '.id')
-if [ -z "$PROJECTS_ID" ] || [ "$PROJECTS_ID" = "null" ]; then
-  echo "❌ Failed to create projects collection. Response:"
-  echo "$PROJECTS_RESPONSE"
-  exit 1
+
+PROJECTS_ID=$(echo "$PROJECTS_RESPONSE" | jq -r '.id // empty')
+if [ -z "$PROJECTS_ID" ]; then
+    echo "❌ Failed to create projects collection. Response:"
+    echo "$PROJECTS_RESPONSE" | jq '.'
+    exit 1
 fi
 echo "✅ Projects collection created (ID: $PROJECTS_ID)"
 
 # Create chat_messages collection
 echo "📦 Creating chat_messages collection..."
-curl -s -X POST "$BASE_URL/api/collections" \
+CHAT_RESPONSE=$(curl -s -X POST "$BASE_URL/api/collections" \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -81,12 +89,14 @@ curl -s -X POST "$BASE_URL/api/collections" \
     "createRule": "@request.auth.id != \"\"",
     "updateRule": "project.user = @request.auth.id",
     "deleteRule": "project.user = @request.auth.id"
-  }'
-if [ $? -eq 0 ]; then
-  echo "✅ Chat messages collection created"
-else
-  echo "❌ Chat messages collection creation failed"
-  exit 1
+  }')
+
+CHAT_ID=$(echo "$CHAT_RESPONSE" | jq -r '.id // empty')
+if [ -z "$CHAT_ID" ]; then
+    echo "❌ Failed to create chat_messages collection. Response:"
+    echo "$CHAT_RESPONSE" | jq '.'
+    exit 1
 fi
+echo "✅ Chat messages collection created (ID: $CHAT_ID)"
 
 echo "🎉 All collections and rules are set up!"
